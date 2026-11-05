@@ -6,10 +6,12 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UseWPF>true</UseWPF>
-		<!-- WinForms only for NotifyIcon (WPF has no tray icon). -->
-		<UseWindowsForms>true</UseWindowsForms>
 		<RootNamespace>WindowsTrayInvert</RootNamespace>
 		<ApplicationIcon>Assets\app.ico</ApplicationIcon>
+		<!-- Mostly idle in the tray: no background GC thread, and give memory back eagerly. -->
+		<ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+		<!-- Only the UI languages the app has; drops the other satellite assemblies of WPF-UI. -->
+		<SatelliteResourceLanguages>en;vi</SatelliteResourceLanguages>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -17,9 +19,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<!-- WPF and WinForms both define these; keep explicit usings instead. -->
-		<Using Remove="System.Windows.Forms" />
-		<Using Remove="System.Drawing" />
+		<RuntimeHostConfigurationOption Include="System.GC.ConserveMemory" Value="7" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<!-- UseWPF drops System.IO from implicit usings. -->
 		<Using Include="System.IO" />
 	</ItemGroup>
