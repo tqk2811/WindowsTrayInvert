@@ -29,12 +29,17 @@ public sealed class ThemeController
             return;
         }
 
-        if (_watching)
-        {
-            SystemThemeWatcher.UnWatch(_window);
-            _watching = false;
-        }
+        Detach();
         ApplicationThemeManager.Apply(
             mode == ThemeMode.Dark ? ApplicationTheme.Dark : ApplicationTheme.Light, WindowBackdropType.Mica, true);
+    }
+
+    /// <summary>Stops following Windows theme changes (the watcher keeps a static reference to the window).</summary>
+    public void Detach()
+    {
+        if (!_watching)
+            return;
+        SystemThemeWatcher.UnWatch(_window);
+        _watching = false;
     }
 }

@@ -51,8 +51,8 @@ public sealed class RegistryWatcher : IDisposable
     {
         try
         {
-            using RegistryKey key = Registry.CurrentUser.OpenSubKey(_keyPath)
-                ?? throw new InvalidOperationException($@"Key HKCU\{_keyPath} does not exist.");
+            // Create if missing (fresh profile before Explorer wrote any icon): an open handle is needed to watch it.
+            using RegistryKey key = Registry.CurrentUser.CreateSubKey(_keyPath, RegistryKeyPermissionCheck.ReadSubTree);
             using AutoResetEvent changeEvent = new(false);
             WaitHandle[] handles = [_stopEvent, changeEvent];
 

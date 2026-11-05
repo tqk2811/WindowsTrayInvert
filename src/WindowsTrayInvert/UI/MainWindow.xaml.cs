@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -19,7 +18,10 @@ using MessageBoxButton = System.Windows.MessageBoxButton;
 
 namespace WindowsTrayInvert.UI;
 
-/// <summary>Management window in Windows 11 Settings style. Closing only hides it; the app keeps running in the tray.</summary>
+/// <summary>
+/// Management window in Windows 11 Settings style. Closing really closes it (the app owns a new one per opening),
+/// so it unhooks everything it attached to long-lived objects in <see cref="OnClosed"/>.
+/// </summary>
 public partial class MainWindow : FluentWindow
 {
     private readonly NotifyIconStore _store;
@@ -32,7 +34,7 @@ public partial class MainWindow : FluentWindow
     private readonly OrphanDetector _orphans = new();
     private readonly ObservableCollection<IconRowViewModel> _rows = [];
     private readonly ListCollectionView _view;
-    private bool _allowClose;
+    private bool _closed;
 
     public MainWindow(NotifyIconStore store, AppConfig config, PromotionEnforcer enforcer, AutoStartManager autoStart)
     {
@@ -46,11 +48,7 @@ public partial class MainWindow : FluentWindow
         LanguageBox.ItemsSource = LocalizationManager.SupportedCultures;
         LanguageBox.SelectedItem = LocalizationManager.SupportedCultures
             .First(x => x.Name == LocalizationManager.Instance.Culture.Name);
-        LocalizationManager.Instance.CultureChanged += (_, _) =>
-        {
-            UpdateThemeButton();
-            Refresh(); // orphan count text is built in code
-        };
+        LocalizationManager.Instance.CultureChanged += OnCultureChanged;
 
         _view = new ListCollectionView(_rows)
         {
@@ -65,6 +63,27 @@ public partial class MainWindow : FluentWindow
         Loaded += (_, _) => _theme.Apply(_config.Theme);
         UpdateThemeButton();
         Refresh();
+    }
+
+    private void OnCultureChanged(object? sender, EventArgs e)
+    {
+        UpdateThemeButton();
+        Refresh(); // orphan count text is built in code
+    }
+
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        base.OnClosing(e);
+        // Here, not in OnClosed: unwatching needs the window handle, which is gone by then.
+        if (!e.Cancel)
+            _theme.Detach();
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        _closed = true;
+        LocalizationManager.Instance.CultureChanged -= OnCultureChanged;
+        base.OnClosed(e);
     }
 
     private void OnThemeClick(object sender, RoutedEventArgs e)
@@ -201,7 +220,8 @@ public partial class MainWindow : FluentWindow
         });
         dialog.Content = content;
 
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        // Closed while the dialog was open: do not act on a choice the user can no longer see.
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary || _closed)
             return;
 
         try
@@ -217,23 +237,6 @@ public partial class MainWindow : FluentWindow
             MessageBox.Show(this, ex.Message, loc["ErrorTitle"], MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
         }
         Refresh();
-    }
-
-    /// <summary>Lets <see cref="Window.Close"/> really close (used on app exit).</summary>
-    public void CloseForExit()
-    {
-        _allowClose = true;
-        Close();
-    }
-
-    protected override void OnClosing(CancelEventArgs e)
-    {
-        if (!_allowClose)
-        {
-            e.Cancel = true;
-            Hide();
-        }
-        base.OnClosing(e);
     }
 
     private void RefreshView()
@@ -299,7 +302,7 @@ public partial class MainWindow : FluentWindow
         dialog.PrimaryButtonText = loc["Apply"];
         dialog.PrimaryButtonAppearance = ControlAppearance.Primary;
         dialog.CloseButtonText = loc["Cancel"];
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary || _closed)
             return;
 
         try

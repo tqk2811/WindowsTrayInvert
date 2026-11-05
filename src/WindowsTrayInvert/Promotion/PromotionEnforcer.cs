@@ -24,7 +24,7 @@ public sealed class PromotionEnforcer
     public IReadOnlyList<PromotionChange> Plan()
     {
         List<PromotionChange> changes = [];
-        foreach (var entry in _store.ReadAll())
+        foreach (var entry in _store.ReadAll(includeDisplayData: false))
         {
             // No exe path: cannot be listed or toggled, keep it visible.
             bool promote = entry.ExecutablePath is null || _config.IsShown(entry.ExecutablePath);

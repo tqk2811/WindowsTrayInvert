@@ -13,7 +13,11 @@ public sealed class NotifyIconStore
     public const string KeyPath = @"Control Panel\NotifyIconSettings";
     private const string IsPromotedName = "IsPromoted";
 
-    public IReadOnlyList<NotifyIconEntry> ReadAll()
+    /// <param name="includeDisplayData">
+    /// Also read <see cref="NotifyIconEntry.InitialTooltip"/> and <see cref="NotifyIconEntry.IconSnapshot"/> (PNG
+    /// bytes). Only the window needs them; enforcement runs on every registry change and skips them.
+    /// </param>
+    public IReadOnlyList<NotifyIconEntry> ReadAll(bool includeDisplayData = true)
     {
         using RegistryKey? root = Registry.CurrentUser.OpenSubKey(KeyPath);
         if (root is null)
@@ -32,9 +36,9 @@ public sealed class NotifyIconStore
                 Id = id,
                 RawExecutablePath = rawPath,
                 ExecutablePath = rawPath is null ? null : KnownFolderPathHelper.Normalize(rawPath),
-                InitialTooltip = key.GetValue("InitialTooltip") as string,
+                InitialTooltip = includeDisplayData ? key.GetValue("InitialTooltip") as string : null,
                 IsPromoted = key.GetValue(IsPromotedName) is int value ? value : null,
-                IconSnapshot = key.GetValue("IconSnapshot") as byte[],
+                IconSnapshot = includeDisplayData ? key.GetValue("IconSnapshot") as byte[] : null,
             });
         }
         return entries;
