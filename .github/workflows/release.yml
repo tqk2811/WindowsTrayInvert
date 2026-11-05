@@ -114,10 +114,12 @@ jobs:
           $repoUrl = "$($env:GITHUB_SERVER_URL)/$($env:GITHUB_REPOSITORY)"
 
           # Notes: commits since the previous vM.N.P tag (whole history for the first tag).
-          $range = $tag
           $prevTag = git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*' "$tag^" 2>$null
-          if ($LASTEXITCODE -eq 0 -and $prevTag) { $range = "$($prevTag.Trim())..$tag" } else { $prevTag = $null }
-          $notes = (@(git-cliff --config cliff-release.toml $range) | Where-Object { $_.Trim() }) -join "`n"
+          # git-cliff only takes 'A..B' ranges; for the first tag give no range (= all history up to
+          # HEAD, which is the tag here).
+          $cliffArgs = @('--config', 'cliff-release.toml')
+          if ($LASTEXITCODE -eq 0 -and $prevTag) { $cliffArgs += "$($prevTag.Trim())..$tag" } else { $prevTag = $null }
+          $notes = (@(git-cliff @cliffArgs) | Where-Object { $_.Trim() }) -join "`n"
           if ($LASTEXITCODE -ne 0) { throw "git-cliff failed" }
           $notes = $notes -replace '__REPO__', $repoUrl
           if ($prevTag) { $notes = "$notes`n`n**Full changelog**: $repoUrl/compare/$($prevTag.Trim())...$tag" }
