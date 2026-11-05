@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PageTitle" xml:space="preserve"><value>System tray icons</value></data>
+  <data name="AutoStartHeader" xml:space="preserve"><value>Start with Windows</value></data>
+  <data name="AutoStartDescription" xml:space="preserve"><value>Run in the system tray every time you sign in</value></data>
+  <data name="AppIconsHeader" xml:space="preserve"><value>Other system tray icons</value></data>
+  <data name="SearchPlaceholder" xml:space="preserve"><value>Search apps</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="NoMatch" xml:space="preserve"><value>No apps match.</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>Theme: follow Windows</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>Theme: light</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>Theme: dark</value></data>
+  <data name="Language" xml:space="preserve"><value>Language</value></data>
+  <data name="TrayOpen" xml:space="preserve"><value>Open settings</value></data>
+  <data name="TrayExit" xml:space="preserve"><value>Exit</value></data>
+  <data name="ErrorTitle" xml:space="preserve"><value>Error</value></data>
+  <data name="ErrorSaveConfig" xml:space="preserve"><value>Could not save settings</value></data>
+  <data name="ConfigLoadFailed" xml:space="preserve"><value>Could not read {0}:
+{1}
+
+Starting with default settings.</value></data>
+  <data name="WatcherStopped" xml:space="preserve"><value>Stopped watching the registry:
+{0}</value></data>
+  <data name="OrphanHeader" xml:space="preserve"><value>Clean up orphaned tray icons</value></data>
+  <data name="OrphanNone" xml:space="preserve"><value>No entries point to missing files</value></data>
+  <data name="OrphanCount" xml:space="preserve"><value>Entries pointing to missing files: {0}</value></data>
+  <data name="OrphanCleanButton" xml:space="preserve"><value>Clean up…</value></data>
+  <data name="OrphanConfirmTitle" xml:space="preserve"><value>Remove orphaned tray icons?</value></data>
+  <data name="OrphanConfirmText" xml:space="preserve"><value>These entries will be removed from the Windows tray settings:</value></data>
+  <data name="OrphanBadge" xml:space="preserve"><value>File no longer exists</value></data>
+  <data name="Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="AppIconsDescription" xml:space="preserve"><value>Show or hide additional system tray icons. Icons turned off go to the hidden icon menu.</value></data>
+  <data name="OpenFolder" xml:space="preserve"><value>Open file location</value></data>
+  <data name="ShowAll" xml:space="preserve"><value>Show all listed icons in the system tray</value></data>
+  <data name="HideAll" xml:space="preserve"><value>Move all listed icons to the hidden icon menu</value></data>
+  <data name="BulkShowTitle" xml:space="preserve"><value>Show {0} icons in the system tray?</value></data>
+  <data name="BulkHideTitle" xml:space="preserve"><value>Move {0} icons to the hidden icon menu?</value></data>
+  <data name="BulkText" xml:space="preserve"><value>Applies to the apps currently in the list (search filter included).</value></data>
+  <data name="BulkNothing" xml:space="preserve"><value>All listed apps already have this state.</value></data>
+  <data name="Apply" xml:space="preserve"><value>Apply</value></data>
+</root>

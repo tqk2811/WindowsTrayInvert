@@ -1,0 +1,10 @@
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+publish/
+artifacts/
+*.zip
+**/Properties/PublishProfiles/*.pubxml

@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
+		<!-- WinForms only for NotifyIcon (WPF has no tray icon). -->
+		<UseWindowsForms>true</UseWindowsForms>
+		<RootNamespace>WindowsTrayInvert</RootNamespace>
+		<ApplicationIcon>Assets\app.ico</ApplicationIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Resource Include="Assets\app.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- WPF and WinForms both define these; keep explicit usings instead. -->
+		<Using Remove="System.Windows.Forms" />
+		<Using Remove="System.Drawing" />
+		<!-- UseWPF drops System.IO from implicit usings. -->
+		<Using Include="System.IO" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Windows 11 Settings look: FluentWindow, Mica, CardControl, ToggleSwitch. -->
+		<PackageReference Include="WPF-UI" Version="4.3.0" />
+	</ItemGroup>
+
+	<!--
+		Version from the nearest git tag vM.N.P:
+		- on the tagged commit: M.N.P (what the release CI builds and checks against the tag);
+		- K commits after it: M.N.P-dev.K, so a local build never looks like a released one.
+		No tag yet: 0.0.0. No git (e.g. source zip): the SDK default 1.0.0.
+	-->
+	<Target Name="SetVersionFromGit" BeforeTargets="GetAssemblyVersion">
+		<Exec Command="git describe --tags --long --match &quot;v[0-9]*.[0-9]*.[0-9]*&quot;" WorkingDirectory="$(MSBuildProjectDirectory)"
+		      ConsoleToMSBuild="true" StandardOutputImportance="low" StandardErrorImportance="low" IgnoreExitCode="true" EchoOff="true">
+			<Output TaskParameter="ConsoleOutput" PropertyName="_GitDescribe" />
+			<Output TaskParameter="ExitCode" PropertyName="_GitDescribeExit" />
+		</Exec>
+		<!-- describe also fails in a repo without tags; rev-parse tells that apart from "no git". -->
+		<Exec Command="git rev-parse HEAD" WorkingDirectory="$(MSBuildProjectDirectory)" Condition="'$(_GitDescribeExit)' != '0'"
+		      ConsoleToMSBuild="true" StandardOutputImportance="low" StandardErrorImportance="low" IgnoreExitCode="true" EchoOff="true">
+			<Output TaskParameter="ExitCode" PropertyName="_GitRevParseExit" />
+		</Exec>
+		<PropertyGroup Condition="'$(_GitDescribeExit)' == '0'">
+			<!-- "v1.2.3-5-gabcdef0": tag v1.2.3, 5 commits since the tag. -->
+			<_GitVersion>$([System.Text.RegularExpressions.Regex]::Match('$(_GitDescribe.Trim())', '^v(\d+\.\d+\.\d+)-\d+-g').Groups[1].Value)</_GitVersion>
+			<_GitDistance>$([System.Text.RegularExpressions.Regex]::Match('$(_GitDescribe.Trim())', '-(\d+)-g[0-9a-f]+$').Groups[1].Value)</_GitDistance>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(_GitDescribeExit)' != '0' and '$(_GitRevParseExit)' == '0'">
+			<_GitVersion>0.0.0</_GitVersion>
+			<_GitDistance>0</_GitDistance>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(_GitVersion)' != '' and '$(_GitDistance)' != ''">
+			<Version>$(_GitVersion)</Version>
+			<FileVersion>$(_GitVersion).$(_GitDistance)</FileVersion>
+			<InformationalVersion>$(_GitVersion)</InformationalVersion>
+			<InformationalVersion Condition="'$(_GitDistance)' != '0'">$(_GitVersion)-dev.$(_GitDistance)</InformationalVersion>
+		</PropertyGroup>
+		<Message Importance="high" Text="WindowsTrayInvert version: $(InformationalVersion)" />
+	</Target>
+
+</Project>
