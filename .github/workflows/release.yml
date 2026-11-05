@@ -1,0 +1,150 @@
+name: Release
+
+# Builds the app and publishes a GitHub Release when a tag 'vM.N.P' is pushed:
+#   git tag v1.0.0 && git push origin v1.0.0
+# Also runnable by hand (workflow_dispatch) to rebuild a release: pick the TAG as the ref, not a branch.
+#
+# Version = the tag itself (target SetVersionFromGit in src/WindowsTrayInvert/WindowsTrayInvert.csproj);
+# the job fails when the built exe's version does not match the tag.
+# One GitHub Release per tag, notes = commits since the previous vM.N.P tag (git-cliff, cliff-release.toml).
+# Two zips:
+#   WindowsTrayInvert-M.N.P-win-x64-standalone.zip     .NET runtime included
+#   WindowsTrayInvert-M.N.P-win-x64-needs-dotnet8.zip  needs the .NET 8 Desktop Runtime
+# GitHub does not start workflows when more than 3 tags are pushed at once: push tags one by one.
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  # One queue per tag, so a tag pushed while another builds does not cancel it.
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
+  release:
+    needs: build
+    runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: 'true'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+    steps:
+      - name: Checkout (full history + tags)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # A manual run from a branch, or a tag on a commit that is not on master, is not a release.
+      - name: Check tag
+        shell: pwsh
+        run: |
+          if ('${{ github.ref_type }}' -ne 'tag') { throw "Run this workflow on a tag vM.N.P, not on '${{ github.ref_name }}'" }
+          git merge-base --is-ancestor HEAD origin/master
+          if ($LASTEXITCODE -ne 0) { throw "Tag '${{ github.ref_name }}' is not on master" }
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install git-cliff
+        shell: pwsh
+        run: |
+          $ver = "2.13.1"
+          $url = "https://github.com/orhun/git-cliff/releases/download/v$ver/git-cliff-$ver-x86_64-pc-windows-msvc.zip"
+          $zip = Join-Path $env:RUNNER_TEMP "git-cliff.zip"
+          Invoke-WebRequest $url -OutFile $zip
+          $dst = Join-Path $env:RUNNER_TEMP "git-cliff"
+          Expand-Archive $zip -DestinationPath $dst -Force
+          $exe = Get-ChildItem $dst -Recurse -Filter git-cliff.exe | Select-Object -First 1
+          Add-Content -Path $env:GITHUB_PATH -Value $exe.DirectoryName
+
+      - name: Publish
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $variants = @(
+            @{ Suffix = 'win-x64-standalone';    SelfContained = 'true'  }
+            @{ Suffix = 'win-x64-needs-dotnet8'; SelfContained = 'false' }
+          )
+          foreach ($v in $variants) {
+            dotnet publish src/WindowsTrayInvert/WindowsTrayInvert.csproj -c Release -r win-x64 `
+              --self-contained $v.SelfContained -o "publish/$($v.Suffix)"
+            if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed ($($v.Suffix))" }
+          }
+
+      - name: Zip
+        id: zip
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # Cut any '+<sha>' the SDK may append to the product version before comparing.
+          $ver = ((Get-Item publish/win-x64-standalone/WindowsTrayInvert.exe).VersionInfo.ProductVersion -split '\+')[0]
+          $tag = $env:GITHUB_REF_NAME
+          if ($ver -notmatch '^\d+\.\d+\.\d+$' -or "v$ver" -ne $tag) { throw "Built version '$ver' does not match tag '$tag'" }
+          $zips = foreach ($dir in Get-ChildItem publish -Directory) {
+            $zip = "WindowsTrayInvert-$ver-$($dir.Name).zip"
+            Compress-Archive -Path "$($dir.FullName)/*" -DestinationPath $zip
+            $zip
+          }
+          Add-Content $env:GITHUB_OUTPUT "version=$ver"
+          Add-Content $env:GITHUB_OUTPUT "tag=$tag"
+          Add-Content $env:GITHUB_OUTPUT "zips=$($zips -join ';')"
+          Write-Host "version=$ver  tag=$tag  zips=$($zips -join ', ')"
+
+      - name: Upload to GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.zip.outputs.tag }}
+          VERSION: ${{ steps.zip.outputs.version }}
+          ZIPS: ${{ steps.zip.outputs.zips }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = $env:TAG
+          $ver = $env:VERSION
+          $repoUrl = "$($env:GITHUB_SERVER_URL)/$($env:GITHUB_REPOSITORY)"
+
+          # Notes: commits since the previous vM.N.P tag (whole history for the first tag).
+          $range = $tag
+          $prevTag = git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*' "$tag^" 2>$null
+          if ($LASTEXITCODE -eq 0 -and $prevTag) { $range = "$($prevTag.Trim())..$tag" } else { $prevTag = $null }
+          $notes = (@(git-cliff --config cliff-release.toml $range) | Where-Object { $_.Trim() }) -join "`n"
+          if ($LASTEXITCODE -ne 0) { throw "git-cliff failed" }
+          $notes = $notes -replace '__REPO__', $repoUrl
+          if ($prevTag) { $notes = "$notes`n`n**Full changelog**: $repoUrl/compare/$($prevTag.Trim())...$tag" }
+          $downloads = @(
+            '## Which file to download'
+            ''
+            'Windows 10/11 x64. Unzip anywhere and run `WindowsTrayInvert.exe` (no administrator rights needed).'
+            ''
+            '| File | .NET runtime |'
+            '|---|---|'
+            "| ``WindowsTrayInvert-$ver-win-x64-standalone.zip`` | Included, nothing to install (**pick this if unsure**) |"
+            "| ``WindowsTrayInvert-$ver-win-x64-needs-dotnet8.zip`` | Install the [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) first |"
+            ''
+            '## Changes'
+            ''
+          ) -join "`n"
+          if ([string]::IsNullOrWhiteSpace($notes)) { $notes = "Release $tag" }
+          Set-Content -Path RELEASE_NOTES.md -Value "$downloads$notes" -Encoding utf8
+
+          # gh is a native command: a non-zero exit does not throw under 'Stop', so check by hand.
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release edit $tag --notes-file RELEASE_NOTES.md
+            if ($LASTEXITCODE -ne 0) { throw "gh release edit failed" }
+          } else {
+            gh release create $tag --title $tag --notes-file RELEASE_NOTES.md --verify-tag
+            if ($LASTEXITCODE -ne 0) { throw "gh release create failed" }
+          }
+          gh release upload $tag @($env:ZIPS -split ';') --clobber
+          if ($LASTEXITCODE -ne 0) { throw "gh release upload failed" }

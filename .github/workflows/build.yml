@@ -1,0 +1,45 @@
+name: Build
+
+# Builds on every push to master and every pull request, so a broken build shows up before a tag.
+# release.yml calls this workflow (workflow_call) and only publishes when it passes.
+# The project has no tests yet; add a 'dotnet test' step here when it does.
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_call:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: 'true'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build
+        shell: pwsh
+        run: |
+          dotnet build src/WindowsTrayInvert.slnx -c Release
+          if ($LASTEXITCODE -ne 0) { throw "dotnet build failed" }
