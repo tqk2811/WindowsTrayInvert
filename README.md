@@ -62,3 +62,7 @@ Push a tag `vM.N.P` on a commit of `master`; GitHub Actions ([release.yml](.gith
 git tag v1.0.0
 git push origin v1.0.0
 ```
+
+## License
+
+[MIT](LICENSE)

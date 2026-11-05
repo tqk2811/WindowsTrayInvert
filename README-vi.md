@@ -62,3 +62,7 @@ Gắn tag `vM.N.P` lên một commit của `master` rồi push tag; GitHub Actio
 git tag v1.0.0
 git push origin v1.0.0
 ```
+
+## Giấy phép
+
+[MIT](LICENSE)
