@@ -7,6 +7,11 @@
   <data name="PageTitle" xml:space="preserve"><value>Biểu tượng khay hệ thống</value></data>
   <data name="AutoStartHeader" xml:space="preserve"><value>Khởi động cùng Windows</value></data>
   <data name="AutoStartDescription" xml:space="preserve"><value>Chạy nền ở khay hệ thống mỗi khi đăng nhập</value></data>
+  <data name="SoftwareRenderingHeader" xml:space="preserve"><value>Không dùng GPU để vẽ</value></data>
+  <data name="SoftwareRenderingDescription" xml:space="preserve"><value>Vẽ cửa sổ bằng CPU để dùng ít thread và ít bộ nhớ hơn. App sẽ khởi động lại để áp dụng</value></data>
+  <data name="RestartConfirmTitle" xml:space="preserve"><value>Khởi động lại app?</value></data>
+  <data name="RestartConfirmText" xml:space="preserve"><value>Tuỳ chọn này chỉ có hiệu lực khi app khởi động. Khởi động lại ngay để áp dụng?</value></data>
+  <data name="Restart" xml:space="preserve"><value>Khởi động lại</value></data>
   <data name="AppIconsHeader" xml:space="preserve"><value>Các biểu tượng khay hệ thống khác</value></data>
   <data name="SearchPlaceholder" xml:space="preserve"><value>Tìm ứng dụng</value></data>
   <data name="Refresh" xml:space="preserve"><value>Làm mới</value></data>

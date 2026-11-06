@@ -7,6 +7,11 @@
   <data name="PageTitle" xml:space="preserve"><value>System tray icons</value></data>
   <data name="AutoStartHeader" xml:space="preserve"><value>Start with Windows</value></data>
   <data name="AutoStartDescription" xml:space="preserve"><value>Run in the system tray every time you sign in</value></data>
+  <data name="SoftwareRenderingHeader" xml:space="preserve"><value>Render without the GPU</value></data>
+  <data name="SoftwareRenderingDescription" xml:space="preserve"><value>Draw the window on the CPU to use fewer threads and less memory. The app restarts to apply the change</value></data>
+  <data name="RestartConfirmTitle" xml:space="preserve"><value>Restart the app?</value></data>
+  <data name="RestartConfirmText" xml:space="preserve"><value>This setting only applies when the app starts. Restart now to apply it?</value></data>
+  <data name="Restart" xml:space="preserve"><value>Restart</value></data>
   <data name="AppIconsHeader" xml:space="preserve"><value>Other system tray icons</value></data>
   <data name="SearchPlaceholder" xml:space="preserve"><value>Search apps</value></data>
   <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>

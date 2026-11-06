@@ -34,10 +34,13 @@ public partial class MainWindow : FluentWindow
     private readonly OrphanDetector _orphans = new();
     private readonly ObservableCollection<IconRowViewModel> _rows = [];
     private readonly ListCollectionView _view;
+    private readonly Action _restartApp;
     private bool _closed;
 
-    public MainWindow(NotifyIconStore store, AppConfig config, PromotionEnforcer enforcer, AutoStartManager autoStart)
+    public MainWindow(NotifyIconStore store, AppConfig config, PromotionEnforcer enforcer, AutoStartManager autoStart,
+        Action restartApp)
     {
+        _restartApp = restartApp;
         _store = store;
         _config = config;
         _enforcer = enforcer;
@@ -132,6 +135,7 @@ public partial class MainWindow : FluentWindow
     public void Refresh()
     {
         AutoStartToggle.IsChecked = _autoStart.IsEnabled;
+        SoftwareRenderingToggle.IsChecked = _config.SoftwareRendering;
 
         var byId = _rows.ToDictionary(x => x.Id);
         HashSet<string> seen = [];
@@ -395,5 +399,41 @@ public partial class MainWindow : FluentWindow
             MessageBox.Show(this, ex.Message, LocalizationManager.Instance["ErrorTitle"], MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
         }
         AutoStartToggle.IsChecked = _autoStart.IsEnabled;
+    }
+
+    /// <summary>The render mode is fixed at startup, so a change is saved only if the user agrees to restart now.</summary>
+    private async void OnSoftwareRenderingClick(object sender, RoutedEventArgs e)
+    {
+        bool wanted = SoftwareRenderingToggle.IsChecked == true;
+        SoftwareRenderingToggle.IsChecked = _config.SoftwareRendering;
+
+        LocalizationManager loc = LocalizationManager.Instance;
+        var dialog = new ContentDialog(DialogHost)
+        {
+            Title = loc["RestartConfirmTitle"],
+            Content = new System.Windows.Controls.TextBlock
+            {
+                Text = loc["RestartConfirmText"],
+                TextWrapping = TextWrapping.Wrap,
+            },
+            PrimaryButtonText = loc["Restart"],
+            PrimaryButtonAppearance = ControlAppearance.Primary,
+            CloseButtonText = loc["Cancel"],
+            DialogMaxWidth = 520,
+        };
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary || _closed)
+            return;
+
+        try
+        {
+            _config.SoftwareRendering = wanted;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, loc["ErrorSaveConfig"],
+                MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            return;
+        }
+        _restartApp();
     }
 }

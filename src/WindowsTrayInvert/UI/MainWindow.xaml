@@ -59,6 +59,20 @@
 
                 <ui:CardControl Margin="0,0,0,4">
                     <ui:CardControl.Icon>
+                        <ui:SymbolIcon Symbol="Desktop24" />
+                    </ui:CardControl.Icon>
+                    <ui:CardControl.Header>
+                        <StackPanel>
+                            <TextBlock Text="{loc:Tr SoftwareRenderingHeader}" FontSize="14" />
+                            <TextBlock Text="{loc:Tr SoftwareRenderingDescription}" FontSize="12" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </ui:CardControl.Header>
+                    <ui:ToggleSwitch x:Name="SoftwareRenderingToggle" Click="OnSoftwareRenderingClick" />
+                </ui:CardControl>
+
+                <ui:CardControl Margin="0,0,0,4">
+                    <ui:CardControl.Icon>
                         <ui:SymbolIcon Symbol="Broom24" />
                     </ui:CardControl.Icon>
                     <ui:CardControl.Header>

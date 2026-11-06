@@ -35,6 +35,7 @@ public partial class App : Application
     private MainWindow? _window;
     private ResourceDictionary[]? _uiDictionaries;
     private bool _exiting;
+    private bool _restarting;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -62,6 +63,9 @@ public partial class App : Application
         {
             loadError = ex;
         }
+        // Must run before the first window: the render mode is fixed once WPF creates its render device.
+        if (_config.SoftwareRendering)
+            System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
         LocalizationManager loc = LocalizationManager.Instance;
         loc.Culture = LocalizationManager.Resolve(_config.Language);
         if (loadError is not null)
@@ -93,6 +97,9 @@ public partial class App : Application
         _watcher?.Dispose();
         _trayIcon?.Dispose();
         _instanceMutex?.Dispose();
+        // Only after the mutex is released, or the new process would just signal this one and quit.
+        if (_restarting)
+            System.Diagnostics.Process.Start(Environment.ProcessPath!);
         base.OnExit(e);
     }
 
@@ -117,7 +124,7 @@ public partial class App : Application
         if (_window is null)
         {
             LoadUiDictionaries();
-            _window = new MainWindow(_store!, _config!, _enforcer!, _autoStart!);
+            _window = new MainWindow(_store!, _config!, _enforcer!, _autoStart!, RestartApp);
             _window.Closed += OnWindowClosed;
         }
         else
@@ -178,6 +185,13 @@ public partial class App : Application
         _exiting = true;
         _window?.Close();
         Shutdown();
+    }
+
+    /// <summary>Exits and starts a fresh process (with the window open), e.g. to apply the render mode.</summary>
+    private void RestartApp()
+    {
+        _restarting = true;
+        ExitApp();
     }
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

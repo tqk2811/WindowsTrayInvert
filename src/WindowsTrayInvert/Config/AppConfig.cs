@@ -18,6 +18,7 @@ public sealed class AppConfig
     private readonly HashSet<string> _hiddenIds = new(StringComparer.OrdinalIgnoreCase);
     private ThemeMode _theme = ThemeMode.System;
     private string? _language;
+    private bool _softwareRendering;
 
     public AppConfig(string filePath)
     {
@@ -41,6 +42,13 @@ public sealed class AppConfig
         set { lock (_lock) _language = value; Save(); }
     }
 
+    /// <summary>Render on the CPU. Read once at startup, so a change takes effect after a restart.</summary>
+    public bool SoftwareRendering
+    {
+        get { lock (_lock) return _softwareRendering; }
+        set { lock (_lock) _softwareRendering = value; Save(); }
+    }
+
     public void Load()
     {
         ConfigData data = File.Exists(_filePath)
@@ -53,6 +61,7 @@ public sealed class AppConfig
             _hiddenIds.UnionWith(data.HiddenIds ?? []);
             _theme = Enum.IsDefined(data.Theme) ? data.Theme : ThemeMode.System;
             _language = data.Language;
+            _softwareRendering = data.SoftwareRendering;
         }
     }
 
@@ -99,6 +108,7 @@ public sealed class AppConfig
                 HiddenIds = _hiddenIds.Order(StringComparer.OrdinalIgnoreCase).ToList(),
                 Theme = _theme,
                 Language = _language,
+                SoftwareRendering = _softwareRendering,
             }, _jsonOptions);
         }
 

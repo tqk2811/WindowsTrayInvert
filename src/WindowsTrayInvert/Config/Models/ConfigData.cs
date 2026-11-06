@@ -14,4 +14,7 @@ public sealed class ConfigData
 
     /// <summary>Culture name (<c>en</c>, <c>vi</c>); <c>null</c> = follow the Windows display language.</summary>
     public string? Language { get; set; }
+
+    /// <summary>Render on the CPU instead of the GPU: fewer threads and less memory; applied at startup.</summary>
+    public bool SoftwareRendering { get; set; }
 }
