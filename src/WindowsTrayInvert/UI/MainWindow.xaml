@@ -147,9 +147,9 @@
                                 <StackPanel Orientation="Horizontal">
                                     <ui:Button Appearance="Transparent" BorderThickness="0" Padding="8" Margin="0,0,12,0"
                                                VerticalAlignment="Center" Icon="{ui:SymbolIcon FolderOpen24}"
-                                               IsEnabled="{Binding CanToggle}" Click="OnOpenFolderClick"
+                                               IsEnabled="{Binding CanOpenFolder}" Click="OnOpenFolderClick"
                                                ToolTip="{loc:Tr OpenFolder}" AutomationProperties.Name="{loc:Tr OpenFolder}" />
-                                    <ui:ToggleSwitch IsEnabled="{Binding CanToggle}" VerticalAlignment="Center"
+                                    <ui:ToggleSwitch VerticalAlignment="Center"
                                                      IsChecked="{Binding IsShown, UpdateSourceTrigger=PropertyChanged}"
                                                      AutomationProperties.Name="{Binding Name}" />
                                 </StackPanel>

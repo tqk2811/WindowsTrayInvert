@@ -7,7 +7,7 @@ using WindowsTrayInvert.Tray.Models;
 namespace WindowsTrayInvert.UI.ViewModels;
 
 /// <summary>
-/// One icon card. The toggle shows <see cref="IsShown"/> (like Settings); turning it off adds the exe to the
+/// One icon card. The toggle shows <see cref="IsShown"/> (like Settings); turning it off adds this icon (subkey id) to the
 /// hide list through the owner callback.
 /// </summary>
 public sealed class IconRowViewModel : INotifyPropertyChanged
@@ -42,7 +42,7 @@ public sealed class IconRowViewModel : INotifyPropertyChanged
     /// <summary>The executable no longer exists on disk (see <see cref="Tray.OrphanDetector"/>).</summary>
     public bool IsOrphan => _isOrphan;
 
-    public bool CanToggle => _entry.ExecutablePath is not null;
+    public bool CanOpenFolder => _entry.ExecutablePath is not null;
 
     public bool IsShown
     {

@@ -138,7 +138,7 @@ public partial class MainWindow : FluentWindow
         foreach (var entry in _store.ReadAll())
         {
             seen.Add(entry.Id);
-            bool hidden = entry.ExecutablePath is not null && !_config.IsShown(entry.ExecutablePath);
+            bool hidden = !_config.IsShown(entry.Id);
             bool orphan = _orphans.IsOrphan(entry);
             if (byId.TryGetValue(entry.Id, out var row))
                 row.Update(entry, hidden, orphan);
@@ -224,18 +224,23 @@ public partial class MainWindow : FluentWindow
         if (await dialog.ShowAsync() != ContentDialogResult.Primary || _closed)
             return;
 
+        List<string> deleted = [];
         try
         {
             foreach (var (box, row) in choices)
             {
-                if (box.IsChecked == true)
-                    _store.Delete(row.Id);
+                if (box.IsChecked != true)
+                    continue;
+                _store.Delete(row.Id);
+                deleted.Add(row.Id);
             }
         }
         catch (Exception ex)
         {
             MessageBox.Show(this, ex.Message, loc["ErrorTitle"], MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
         }
+        // Deleted subkeys never come back with the same id, so drop them from the hide list.
+        TrySave(() => _config.Forget(deleted));
         Refresh();
     }
 
@@ -259,11 +264,9 @@ public partial class MainWindow : FluentWindow
 
     private void OnHiddenChanged(IconRowViewModel row, bool hidden)
     {
-        if (row.ExecutablePath is null)
-            return;
         try
         {
-            _config.SetShown(row.ExecutablePath, !hidden);
+            _config.SetShown(row.Id, !hidden);
             _enforcer.Apply();
         }
         catch (Exception ex)
@@ -284,7 +287,7 @@ public partial class MainWindow : FluentWindow
     {
         LocalizationManager loc = LocalizationManager.Instance;
         var targets = _view.Cast<IconRowViewModel>()
-            .Where(x => x.CanToggle && x.IsShown != shown)
+            .Where(x => x.IsShown != shown)
             .ToList();
 
         var dialog = new ContentDialog(DialogHost) { DialogMaxWidth = 520 };
@@ -309,7 +312,7 @@ public partial class MainWindow : FluentWindow
         {
             // Write the config for all rows, then enforce once (not once per row).
             foreach (var row in targets)
-                _config.SetShown(row.ExecutablePath!, shown);
+                _config.SetShown(row.Id, shown);
             _enforcer.Apply();
         }
         catch (Exception ex)

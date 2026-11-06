@@ -1,13 +1,13 @@
 using System.Text.Json;
 using WindowsTrayInvert.Config.Enums;
 using WindowsTrayInvert.Config.Models;
-using WindowsTrayInvert.Tray.Helpers;
 
 namespace WindowsTrayInvert.Config;
 
 /// <summary>
-/// App settings persisted as JSON: hide list, theme, language. Paths are stored normalized and matched
-/// case-insensitively. Thread-safe: the watcher thread reads while the UI thread may edit.
+/// App settings persisted as JSON: hide list, theme, language. The hide list holds <c>NotifyIconSettings</c> subkey
+/// ids, so icons sharing one exe (several explorer.exe icons) are toggled separately.
+/// Thread-safe: the watcher thread reads while the UI thread may edit.
 /// </summary>
 public sealed class AppConfig
 {
@@ -15,7 +15,7 @@ public sealed class AppConfig
 
     private readonly string _filePath;
     private readonly object _lock = new();
-    private readonly HashSet<string> _hiddenPaths = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _hiddenIds = new(StringComparer.OrdinalIgnoreCase);
     private ThemeMode _theme = ThemeMode.System;
     private string? _language;
 
@@ -49,26 +49,26 @@ public sealed class AppConfig
 
         lock (_lock)
         {
-            Fill(_hiddenPaths, data.HiddenPaths);
+            _hiddenIds.Clear();
+            _hiddenIds.UnionWith(data.HiddenIds ?? []);
             _theme = Enum.IsDefined(data.Theme) ? data.Theme : ThemeMode.System;
             _language = data.Language;
         }
     }
 
-    /// <summary>Whether the icon of this exe should be on the taskbar (not in the hide list).</summary>
-    public bool IsShown(string normalizedPath)
+    /// <summary>Whether the icon with this subkey id should be on the taskbar (not in the hide list).</summary>
+    public bool IsShown(string id)
     {
         lock (_lock)
-            return !_hiddenPaths.Contains(normalizedPath);
+            return !_hiddenIds.Contains(id);
     }
 
     /// <returns><c>true</c> if the hide list changed (and was saved).</returns>
-    public bool SetShown(string path, bool shown)
+    public bool SetShown(string id, bool shown)
     {
-        string normalized = KnownFolderPathHelper.Normalize(path);
         lock (_lock)
         {
-            bool changed = shown ? _hiddenPaths.Remove(normalized) : _hiddenPaths.Add(normalized);
+            bool changed = shown ? _hiddenIds.Remove(id) : _hiddenIds.Add(id);
             if (!changed)
                 return false;
         }
@@ -76,11 +76,17 @@ public sealed class AppConfig
         return true;
     }
 
-    private static void Fill(HashSet<string> target, IEnumerable<string> paths)
+    /// <summary>Drops ids whose subkey was deleted (orphan cleanup), so the list does not grow forever.</summary>
+    public void Forget(IEnumerable<string> ids)
     {
-        target.Clear();
-        foreach (string path in paths)
-            target.Add(KnownFolderPathHelper.Normalize(path));
+        lock (_lock)
+        {
+            int before = _hiddenIds.Count;
+            _hiddenIds.ExceptWith(ids);
+            if (_hiddenIds.Count == before)
+                return;
+        }
+        Save();
     }
 
     private void Save()
@@ -90,7 +96,7 @@ public sealed class AppConfig
         {
             json = JsonSerializer.Serialize(new ConfigData
             {
-                HiddenPaths = _hiddenPaths.Order(StringComparer.OrdinalIgnoreCase).ToList(),
+                HiddenIds = _hiddenIds.Order(StringComparer.OrdinalIgnoreCase).ToList(),
                 Theme = _theme,
                 Language = _language,
             }, _jsonOptions);

@@ -26,8 +26,7 @@ public sealed class PromotionEnforcer
         List<PromotionChange> changes = [];
         foreach (var entry in _store.ReadAll(includeDisplayData: false))
         {
-            // No exe path: cannot be listed or toggled, keep it visible.
-            bool promote = entry.ExecutablePath is null || _config.IsShown(entry.ExecutablePath);
+            bool promote = _config.IsShown(entry.Id);
             int desired = promote ? 1 : 0;
             if ((entry.IsPromoted ?? 0) != desired)
                 changes.Add(new PromotionChange { Entry = entry, Promote = promote });
