@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using WindowsTrayInvert.Tray.Enums;
 using WindowsTrayInvert.Tray.Models;
 
 namespace WindowsTrayInvert.UI.ViewModels;
@@ -16,13 +17,13 @@ public sealed class IconRowViewModel : INotifyPropertyChanged
     private bool _isHidden;
     private NotifyIconEntry _entry;
     private ImageSource? _image;
-    private bool _isOrphan;
+    private OrphanReason _orphanReason;
 
-    public IconRowViewModel(NotifyIconEntry entry, bool isHidden, bool isOrphan, Action<IconRowViewModel, bool> onHiddenChanged)
+    public IconRowViewModel(NotifyIconEntry entry, bool isHidden, OrphanReason orphanReason, Action<IconRowViewModel, bool> onHiddenChanged)
     {
         _entry = entry;
         _isHidden = isHidden;
-        _isOrphan = isOrphan;
+        _orphanReason = orphanReason;
         _onHiddenChanged = onHiddenChanged;
         _image = DecodeImage(entry.IconSnapshot);
     }
@@ -39,8 +40,12 @@ public sealed class IconRowViewModel : INotifyPropertyChanged
 
     public ImageSource? Image => _image;
 
-    /// <summary>The executable no longer exists on disk (see <see cref="Tray.OrphanDetector"/>).</summary>
-    public bool IsOrphan => _isOrphan;
+    /// <summary>Stale entry (see <see cref="Tray.OrphanDetector"/>).</summary>
+    public bool IsOrphan => _orphanReason != OrphanReason.None;
+
+    public bool IsFileMissing => _orphanReason == OrphanReason.MissingFile;
+
+    public bool IsIconMissing => _orphanReason == OrphanReason.MissingIcon;
 
     public bool CanOpenFolder => _entry.ExecutablePath is not null;
 
@@ -58,12 +63,14 @@ public sealed class IconRowViewModel : INotifyPropertyChanged
     }
 
     /// <summary>Refresh from a newer registry read without re-triggering the callback.</summary>
-    public void Update(NotifyIconEntry entry, bool isHidden, bool isOrphan)
+    public void Update(NotifyIconEntry entry, bool isHidden, OrphanReason orphanReason)
     {
-        if (_isOrphan != isOrphan)
+        if (_orphanReason != orphanReason)
         {
-            _isOrphan = isOrphan;
+            _orphanReason = orphanReason;
             OnPropertyChanged(nameof(IsOrphan));
+            OnPropertyChanged(nameof(IsFileMissing));
+            OnPropertyChanged(nameof(IsIconMissing));
         }
         if (!ReferenceEquals(entry.IconSnapshot, _entry.IconSnapshot)
             && !(entry.IconSnapshot ?? []).AsSpan().SequenceEqual(_entry.IconSnapshot ?? []))

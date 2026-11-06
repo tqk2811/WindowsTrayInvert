@@ -26,12 +26,13 @@ Dùng cài đặt mặc định.</value></data>
   <data name="WatcherStopped" xml:space="preserve"><value>Ngừng theo dõi registry:
 {0}</value></data>
   <data name="OrphanHeader" xml:space="preserve"><value>Dọn biểu tượng khay mồ côi</value></data>
-  <data name="OrphanNone" xml:space="preserve"><value>Không có mục nào trỏ tới tệp không còn tồn tại</value></data>
-  <data name="OrphanCount" xml:space="preserve"><value>{0} mục trỏ tới tệp không còn tồn tại</value></data>
+  <data name="OrphanNone" xml:space="preserve"><value>Không có mục nào trỏ tới tệp không còn tồn tại hoặc thiếu icon</value></data>
+  <data name="OrphanCount" xml:space="preserve"><value>{0} mục trỏ tới tệp không còn tồn tại hoặc thiếu icon</value></data>
   <data name="OrphanCleanButton" xml:space="preserve"><value>Dọn…</value></data>
   <data name="OrphanConfirmTitle" xml:space="preserve"><value>Xoá biểu tượng khay mồ côi?</value></data>
   <data name="OrphanConfirmText" xml:space="preserve"><value>Các mục sau sẽ bị xoá khỏi cài đặt khay của Windows:</value></data>
   <data name="OrphanBadge" xml:space="preserve"><value>Tệp không còn tồn tại</value></data>
+  <data name="OrphanBadgeNoIcon" xml:space="preserve"><value>Không có ảnh icon</value></data>
   <data name="Remove" xml:space="preserve"><value>Xoá</value></data>
   <data name="Cancel" xml:space="preserve"><value>Huỷ</value></data>
   <data name="AppIconsDescription" xml:space="preserve"><value>Hiện hoặc ẩn các biểu tượng khay hệ thống. Biểu tượng bị tắt nằm trong menu biểu tượng ẩn.</value></data>

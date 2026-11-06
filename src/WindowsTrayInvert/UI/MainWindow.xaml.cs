@@ -139,7 +139,7 @@ public partial class MainWindow : FluentWindow
         {
             seen.Add(entry.Id);
             bool hidden = !_config.IsShown(entry.Id);
-            bool orphan = _orphans.IsOrphan(entry);
+            var orphan = _orphans.GetReason(entry);
             if (byId.TryGetValue(entry.Id, out var row))
                 row.Update(entry, hidden, orphan);
             else

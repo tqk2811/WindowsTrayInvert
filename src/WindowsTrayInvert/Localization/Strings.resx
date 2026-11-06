@@ -26,12 +26,13 @@ Starting with default settings.</value></data>
   <data name="WatcherStopped" xml:space="preserve"><value>Stopped watching the registry:
 {0}</value></data>
   <data name="OrphanHeader" xml:space="preserve"><value>Clean up orphaned tray icons</value></data>
-  <data name="OrphanNone" xml:space="preserve"><value>No entries point to missing files</value></data>
-  <data name="OrphanCount" xml:space="preserve"><value>Entries pointing to missing files: {0}</value></data>
+  <data name="OrphanNone" xml:space="preserve"><value>No entries point to missing files or lack an icon</value></data>
+  <data name="OrphanCount" xml:space="preserve"><value>Entries pointing to missing files or without an icon: {0}</value></data>
   <data name="OrphanCleanButton" xml:space="preserve"><value>Clean up…</value></data>
   <data name="OrphanConfirmTitle" xml:space="preserve"><value>Remove orphaned tray icons?</value></data>
   <data name="OrphanConfirmText" xml:space="preserve"><value>These entries will be removed from the Windows tray settings:</value></data>
   <data name="OrphanBadge" xml:space="preserve"><value>File no longer exists</value></data>
+  <data name="OrphanBadgeNoIcon" xml:space="preserve"><value>No icon image saved</value></data>
   <data name="Remove" xml:space="preserve"><value>Remove</value></data>
   <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="AppIconsDescription" xml:space="preserve"><value>Show or hide additional system tray icons. Icons turned off go to the hidden icon menu.</value></data>

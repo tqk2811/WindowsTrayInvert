@@ -135,10 +135,17 @@
                                             <TextBlock Text="{Binding ExecutablePath}" FontSize="12" TextTrimming="CharacterEllipsis"
                                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                             <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
-                                                        Visibility="{Binding IsOrphan, Converter={StaticResource BoolToVisibility}}">
+                                                        Visibility="{Binding IsFileMissing, Converter={StaticResource BoolToVisibility}}">
                                                 <ui:SymbolIcon Symbol="Warning16" FontSize="12" Margin="0,0,4,0"
                                                                Foreground="{DynamicResource SystemFillColorCautionBrush}" />
                                                 <TextBlock Text="{loc:Tr OrphanBadge}" FontSize="12"
+                                                           Foreground="{DynamicResource SystemFillColorCautionBrush}" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
+                                                        Visibility="{Binding IsIconMissing, Converter={StaticResource BoolToVisibility}}">
+                                                <ui:SymbolIcon Symbol="Warning16" FontSize="12" Margin="0,0,4,0"
+                                                               Foreground="{DynamicResource SystemFillColorCautionBrush}" />
+                                                <TextBlock Text="{loc:Tr OrphanBadgeNoIcon}" FontSize="12"
                                                            Foreground="{DynamicResource SystemFillColorCautionBrush}" />
                                             </StackPanel>
                                         </StackPanel>
