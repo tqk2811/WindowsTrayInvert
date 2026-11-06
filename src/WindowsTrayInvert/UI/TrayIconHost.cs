@@ -8,11 +8,15 @@ namespace WindowsTrayInvert.UI;
 /// The app's own tray icon through <c>Shell_NotifyIcon</c> directly (no WinForms, so the idle process does not load
 /// System.Windows.Forms/System.Drawing). Double-click opens the window; right-click shows a native menu.
 /// Owns its hidden message window and icon handle; re-adds the icon when Explorer restarts.
+/// The same window receives the "show" request of a second launch (<see cref="SignalRunningInstance"/>), so the app
+/// needs no thread-pool wait for it.
 /// </summary>
 public sealed class TrayIconHost : IDisposable
 {
     private const int CallbackMessage = 0x8000 + 1; // WM_APP + 1
     private const uint IconId = 1;
+    private const string ShowMessageName = "WindowsTrayInvert.Show";
+    private static readonly IntPtr HwndBroadcast = 0xFFFF;
     private const uint CommandOpen = 1;
     private const uint CommandExit = 2;
 
@@ -30,6 +34,7 @@ public sealed class TrayIconHost : IDisposable
     private readonly IntPtr _icon;
     private readonly bool _ownsIcon;
     private readonly int _taskbarCreatedMessage;
+    private readonly int _showMessage;
     private bool _disposed;
 
     public TrayIconHost(Action openWindow, Action exit)
@@ -37,6 +42,7 @@ public sealed class TrayIconHost : IDisposable
         _openWindow = openWindow;
         _exit = exit;
         _taskbarCreatedMessage = RegisterWindowMessage("TaskbarCreated");
+        _showMessage = RegisterWindowMessage(ShowMessageName);
         (_icon, _ownsIcon) = LoadIcon();
 
         // Top-level but never shown (message-only windows do not receive the TaskbarCreated broadcast).
@@ -44,6 +50,13 @@ public sealed class TrayIconHost : IDisposable
         _messageWindow.AddHook(WndProc);
         AddIcon();
     }
+
+    /// <summary>
+    /// Asks the running instance to open its window. A registered message posted to every top-level window: only the
+    /// running instance's hidden window knows it, everyone else ignores it.
+    /// </summary>
+    public static void SignalRunningInstance()
+        => PostMessage(HwndBroadcast, RegisterWindowMessage(ShowMessageName), IntPtr.Zero, IntPtr.Zero);
 
     public void Dispose()
     {
@@ -83,12 +96,17 @@ public sealed class TrayIconHost : IDisposable
             AddIcon();
             return IntPtr.Zero;
         }
-        if (msg != CallbackMessage)
+        if (msg != CallbackMessage && msg != _showMessage)
             return IntPtr.Zero;
 
         handled = true;
         try
         {
+            if (msg == _showMessage)
+            {
+                _openWindow();
+                return IntPtr.Zero;
+            }
             switch ((int)lParam)
             {
                 case WmLButtonDblClk:

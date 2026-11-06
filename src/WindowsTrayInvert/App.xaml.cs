@@ -26,8 +26,6 @@ public partial class App : Application
     private const string InstanceName = @"Local\WindowsTrayInvert";
 
     private Mutex? _instanceMutex;
-    private EventWaitHandle? _showEvent;
-    private RegisteredWaitHandle? _showWait;
     private RegistryWatcher? _watcher;
     private TrayIconHost? _trayIcon;
     private NotifyIconStore? _store;
@@ -43,10 +41,9 @@ public partial class App : Application
         base.OnStartup(e);
 
         _instanceMutex = new Mutex(true, InstanceName + ".Mutex", out bool isFirst);
-        _showEvent = new EventWaitHandle(false, EventResetMode.AutoReset, InstanceName + ".Show");
         if (!isFirst)
         {
-            _showEvent.Set();
+            TrayIconHost.SignalRunningInstance();
             Shutdown();
             return;
         }
@@ -85,8 +82,6 @@ public partial class App : Application
             loc.Format("WatcherStopped", ex.Message), DisplayName, MessageBoxButton.OK, MessageBoxImage.Error));
         _watcher.Start();
 
-        _showWait = ThreadPool.RegisterWaitForSingleObject(_showEvent, (_, _) => Dispatcher.BeginInvoke(ShowWindow), null, -1, false);
-
         if (e.Args.Contains(AutoStartManager.TrayArgument, StringComparer.OrdinalIgnoreCase))
             ScheduleTrim();
         else
@@ -95,10 +90,8 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
-        _showWait?.Unregister(null);
         _watcher?.Dispose();
         _trayIcon?.Dispose();
-        _showEvent?.Dispose();
         _instanceMutex?.Dispose();
         base.OnExit(e);
     }
