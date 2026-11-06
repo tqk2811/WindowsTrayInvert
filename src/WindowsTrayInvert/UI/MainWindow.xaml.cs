@@ -244,6 +244,43 @@ public partial class MainWindow : FluentWindow
         Refresh();
     }
 
+    /// <summary>Removes one tray entry from the Windows settings, after confirmation.</summary>
+    private async void OnDeleteClick(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not IconRowViewModel row)
+            return;
+
+        LocalizationManager loc = LocalizationManager.Instance;
+        var dialog = new ContentDialog(DialogHost)
+        {
+            Title = loc.Format("DeleteConfirmTitle", row.Name),
+            Content = new System.Windows.Controls.TextBlock
+            {
+                Text = loc["DeleteConfirmText"] + (row.ExecutablePath is null ? "" : "\n\n" + row.ExecutablePath),
+                TextWrapping = TextWrapping.Wrap,
+            },
+            PrimaryButtonText = loc["Remove"],
+            PrimaryButtonAppearance = ControlAppearance.Danger,
+            CloseButtonText = loc["Cancel"],
+            DialogMaxWidth = 520,
+        };
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary || _closed)
+            return;
+
+        try
+        {
+            _store.Delete(row.Id);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, loc["ErrorTitle"], MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            Refresh();
+            return;
+        }
+        TrySave(() => _config.Forget([row.Id]));
+        Refresh();
+    }
+
     private void RefreshView()
     {
         _view.Refresh();

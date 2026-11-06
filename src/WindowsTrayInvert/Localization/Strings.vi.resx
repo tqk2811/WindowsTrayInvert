@@ -36,6 +36,9 @@ Dùng cài đặt mặc định.</value></data>
   <data name="Remove" xml:space="preserve"><value>Xoá</value></data>
   <data name="Cancel" xml:space="preserve"><value>Huỷ</value></data>
   <data name="AppIconsDescription" xml:space="preserve"><value>Hiện hoặc ẩn các biểu tượng khay hệ thống. Biểu tượng bị tắt nằm trong menu biểu tượng ẩn.</value></data>
+  <data name="DeleteIcon" xml:space="preserve"><value>Xoá khỏi cài đặt khay</value></data>
+  <data name="DeleteConfirmTitle" xml:space="preserve"><value>Xoá "{0}"?</value></data>
+  <data name="DeleteConfirmText" xml:space="preserve"><value>Mục này sẽ bị xoá khỏi cài đặt khay của Windows. Nếu app vẫn đang chạy, Windows sẽ thêm lại khi app hiện icon lần sau.</value></data>
   <data name="OpenFolder" xml:space="preserve"><value>Mở thư mục chứa tệp</value></data>
   <data name="ShowAll" xml:space="preserve"><value>Hiện tất cả biểu tượng trong danh sách trên khay hệ thống</value></data>
   <data name="HideAll" xml:space="preserve"><value>Đưa tất cả biểu tượng trong danh sách vào menu biểu tượng ẩn</value></data>

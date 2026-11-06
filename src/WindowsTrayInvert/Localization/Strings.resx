@@ -36,6 +36,9 @@ Starting with default settings.</value></data>
   <data name="Remove" xml:space="preserve"><value>Remove</value></data>
   <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="AppIconsDescription" xml:space="preserve"><value>Show or hide additional system tray icons. Icons turned off go to the hidden icon menu.</value></data>
+  <data name="DeleteIcon" xml:space="preserve"><value>Remove from tray settings</value></data>
+  <data name="DeleteConfirmTitle" xml:space="preserve"><value>Remove "{0}"?</value></data>
+  <data name="DeleteConfirmText" xml:space="preserve"><value>This entry will be removed from the Windows tray settings. If the app is still running, Windows adds it back the next time the app shows its icon.</value></data>
   <data name="OpenFolder" xml:space="preserve"><value>Open file location</value></data>
   <data name="ShowAll" xml:space="preserve"><value>Show all listed icons in the system tray</value></data>
   <data name="HideAll" xml:space="preserve"><value>Move all listed icons to the hidden icon menu</value></data>
